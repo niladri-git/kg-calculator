@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Per Kg Calculator</title>
+    <style>
+        /* ==================== GLOBAL STYLES ==================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 900px;
+            width: 100%;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ==================== HEADER ==================== */
+        h1 {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        /* ==================== TABLE STYLES ==================== */
+        .calculator-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 15px;
+            margin-bottom: 25px;
+        }
+
+        .calculator-table thead th {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .calculator-table thead th:first-child {
+            border-radius: 10px 0 0 10px;
+        }
+
+        .calculator-table thead th:last-child {
+            border-radius: 0 10px 10px 0;
+        }
+
+        /* ==================== ROW STYLES ==================== */
+        .calculator-row {
+            background: white;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .calculator-row td {
+            padding: 15px;
+            background: #f9f9f9;
+        }
+
+        .calculator-row td:first-child {
+            border-radius: 10px 0 0 10px;
+            font-weight: 600;
+            color: #555;
+            width: 80px;
+        }
+
+        .calculator-row td:last-child {
+            border-radius: 0 10px 10px 0;
+        }
+
+        /* GREEN HIGHLIGHT - Cheaper option */
+        .calculator-row.highlight-green td {
+            background: #E8F5E8;
+            border-color: #4CAF50;
+        }
+
+        .calculator-row.highlight-green {
+            border: 2px solid #4CAF50;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+        }
+
+        /* YELLOW HIGHLIGHT - Tie scenario */
+        .calculator-row.highlight-yellow td {
+            background: #FFF9C4;
+            border-color: #F57C00;
+        }
+
+        .calculator-row.highlight-yellow {
+            border: 2px solid #F57C00;
+            box-shadow: 0 4px 12px rgba(245, 124, 0, 0.2);
+        }
+
+        /* ==================== INPUT STYLES ==================== */
+        .input-group {
+            position: relative;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        input[type="text"]::placeholder {
+            color: #aaa;
+        }
+
+        /* ==================== RESULT DISPLAY ==================== */
+        .result-display {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+            padding: 12px 15px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+        }
+
+        .result-display.error {
+            color: #f44336;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .result-display.empty {
+            color: #999;
+            font-weight: 500;
+        }
+
+        /* ==================== BUTTON STYLES ==================== */
+        .button-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .btn-clear {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-clear:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+        }
+
+        .btn-clear:active {
+            transform: translateY(0);
+        }
+
+        /* ==================== RESPONSIVE DESIGN ==================== */
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .calculator-table {
+                border-spacing: 0 10px;
+            }
+
+            .calculator-table thead th {
+                padding: 10px 8px;
+                font-size: 0.75rem;
+            }
+
+            .calculator-row td {
+                padding: 10px 8px;
+            }
+
+            .calculator-row td:first-child {
+                width: 60px;
+                font-size: 0.85rem;
+            }
+
+            input[type="text"] {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+
+            .result-display {
+                font-size: 1rem;
+                padding: 10px;
+                min-height: 42px;
+            }
+
+            .btn-clear {
+                padding: 12px 30px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+                border-radius: 15px;
+            }
+
+            h1 {
+                font-size: 1.3rem;
+            }
+
+            .subtitle {
+                font-size: 0.85rem;
+            }
+
+            .calculator-table thead th {
+                padding: 8px 5px;
+                font-size: 0.7rem;
+            }
+
+            .calculator-row td {
+                padding: 8px 5px;
+            }
+
+            input[type="text"] {
+                padding: 8px;
+                font-size: 0.85rem;
+            }
+
+            .result-display {
+                font-size: 0.9rem;
+                padding: 8px;
+            }
+        }
+
+        /* ==================== CURRENCY SYMBOL ==================== */
+        .currency {
+            color: #4CAF50;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>💰 Price Per Kg Calculator</h1>
+        <p class="subtitle">Compare prices and find the best deal instantly</p>
+
+        <table class="calculator-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Weight (grams)</th>
+                    <th>Price (<span class="currency">₹</span>)</th>
+                    <th>Price Per Kg</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Row 1 -->
+                <tr class="calculator-row" id="row1">
+                    <td>Item 1</td>
+                    <td>
+                        <div class="input-group">
+                            <input type="text" id="weight1" placeholder="weight" autocomplete="off">
+                        </div>
+                    </td>
+                    <td>
+                        <div class="input-group">
+                            <input type="text" id="price1" placeholder="price" autocomplete="off">
+                        </div>
+                    </td>
+                    <td>
+                        <div class="result-display empty" id="result1">--</div>
+                    </td>
+                </tr>
+
+                <!-- Row 2 -->
+                <tr class="calculator-row" id="row2">
+                    <td>Item 2</td>
+                    <td>
+                        <div class="input-group">
+                            <input type="text" id="weight2" placeholder="weight" autocomplete="off">
+                        </div>
+                    </td>
+                    <td>
+                        <div class="input-group">
+                            <input type="text" id="price2" placeholder="price" autocomplete="off">
+                        </div>
+                    </td>
+                    <td>
+                        <div class="result-display empty" id="result2">--</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="button-container">
+            <button class="btn-clear" onclick="clearAll()">🗑️ Clear All</button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== CALCULATION LOGIC ====================
+
+        /**
+         * Calculate price per kg from weight (grams) and price
+         * Formula: (price / weight_in_grams) * 1000
+         */
+        function calculatePricePerKg(weight, price) {
+            const weightNum = parseFloat(weight);
+            const priceNum = parseFloat(price);
+
+            // Check if inputs are empty
+            if (!weight || !price) {
+                return { valid: false, message: '--', isEmpty: true };
+            }
+
+            // Check if inputs are valid numbers
+            if (isNaN(weightNum) || isNaN(priceNum)) {
+                return { valid: false, message: 'Invalid input', isEmpty: false };
+            }
+
+            // Check if weight is zero or negative
+            if (weightNum <= 0) {
+                return { valid: false, message: 'Invalid input', isEmpty: false };
+            }
+
+            // Calculate price per kg
+            const pricePerKg = (priceNum / weightNum) * 1000;
+            return { valid: true, value: pricePerKg, isEmpty: false };
+        }
+
+        /**
+         * Update display and highlighting for both rows
+         */
+        function updateCalculations() {
+            // Get input values
+            const weight1 = document.getElementById('weight1').value.trim();
+            const price1 = document.getElementById('price1').value.trim();
+            const weight2 = document.getElementById('weight2').value.trim();
+            const price2 = document.getElementById('price2').value.trim();
+
+            // Calculate results
+            const result1 = calculatePricePerKg(weight1, price1);
+            const result2 = calculatePricePerKg(weight2, price2);
+
+            // Get display elements
+            const resultDisplay1 = document.getElementById('result1');
+            const resultDisplay2 = document.getElementById('result2');
+            const row1 = document.getElementById('row1');
+            const row2 = document.getElementById('row2');
+
+            // Update Row 1 display
+            if (result1.valid) {
+                resultDisplay1.innerHTML = `<span class="currency">₹</span>${result1.value.toFixed(2)}/kg`;
+                resultDisplay1.classList.remove('error', 'empty');
+            } else if (result1.isEmpty) {
+                resultDisplay1.textContent = '--';
+                resultDisplay1.classList.remove('error');
+                resultDisplay1.classList.add('empty');
+            } else {
+                resultDisplay1.textContent = result1.message;
+                resultDisplay1.classList.add('error');
+                resultDisplay1.classList.remove('empty');
+            }
+
+            // Update Row 2 display
+            if (result2.valid) {
+                resultDisplay2.innerHTML = `<span class="currency">₹</span>${result2.value.toFixed(2)}/kg`;
+                resultDisplay2.classList.remove('error', 'empty');
+            } else if (result2.isEmpty) {
+                resultDisplay2.textContent = '--';
+                resultDisplay2.classList.remove('error');
+                resultDisplay2.classList.add('empty');
+            } else {
+                resultDisplay2.textContent = result2.message;
+                resultDisplay2.classList.add('error');
+                resultDisplay2.classList.remove('empty');
+            }
+
+            // ==================== HIGHLIGHTING LOGIC ====================
+
+            // Remove all highlights first
+            row1.classList.remove('highlight-green', 'highlight-yellow');
+            row2.classList.remove('highlight-green', 'highlight-yellow');
+
+            // Apply highlights only if both results are valid
+            if (result1.valid && result2.valid) {
+                const diff = Math.abs(result1.value - result2.value);
+                const tolerance = 0.01; // Consider values within 1 paisa as equal
+
+                if (diff < tolerance) {
+                    // TIE - Both rows get yellow highlight
+                    row1.classList.add('highlight-yellow');
+                    row2.classList.add('highlight-yellow');
+                } else if (result1.value < result2.value) {
+                    // Row 1 is cheaper - Green highlight
+                    row1.classList.add('highlight-green');
+                } else {
+                    // Row 2 is cheaper - Green highlight
+                    row2.classList.add('highlight-green');
+                }
+            }
+        }
+
+        /**
+         * Clear all inputs and reset the calculator
+         */
+        function clearAll() {
+            document.getElementById('weight1').value = '';
+            document.getElementById('price1').value = '';
+            document.getElementById('weight2').value = '';
+            document.getElementById('price2').value = '';
+            updateCalculations();
+        }
+
+        // ==================== EVENT LISTENERS ====================
+
+        // Attach input event listeners for real-time calculation
+        document.getElementById('weight1').addEventListener('input', updateCalculations);
+        document.getElementById('price1').addEventListener('input', updateCalculations);
+        document.getElementById('weight2').addEventListener('input', updateCalculations);
+        document.getElementById('price2').addEventListener('input', updateCalculations);
+
+        // Initial calculation on page load
+        updateCalculations();
+    </script>
+</body>
+
+</html>
