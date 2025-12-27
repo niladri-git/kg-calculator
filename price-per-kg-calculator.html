@@ -320,7 +320,7 @@
             <tbody>
                 <!-- Row 1 -->
                 <tr class="calculator-row" id="row1">
-                    <td>Item 1</td>
+                    <td id="item1-label">Item 1</td>
                     <td>
                         <div class="input-group">
                             <input type="text" id="weight1" placeholder="weight" autocomplete="off">
@@ -338,7 +338,7 @@
 
                 <!-- Row 2 -->
                 <tr class="calculator-row" id="row2">
-                    <td>Item 2</td>
+                    <td id="item2-label">Item 2</td>
                     <td>
                         <div class="input-group">
                             <input type="text" id="weight2" placeholder="weight" autocomplete="off">
@@ -442,9 +442,17 @@
 
             // ==================== HIGHLIGHTING LOGIC ====================
 
+            // Get item label elements
+            const item1Label = document.getElementById('item1-label');
+            const item2Label = document.getElementById('item2-label');
+
             // Remove all highlights first
             row1.classList.remove('highlight-green', 'highlight-yellow');
             row2.classList.remove('highlight-green', 'highlight-yellow');
+
+            // Reset item labels (remove checkmarks)
+            item1Label.textContent = 'Item 1';
+            item2Label.textContent = 'Item 2';
 
             // Apply highlights only if both results are valid
             if (result1.valid && result2.valid) {
@@ -456,11 +464,13 @@
                     row1.classList.add('highlight-yellow');
                     row2.classList.add('highlight-yellow');
                 } else if (result1.value < result2.value) {
-                    // Row 1 is cheaper - Green highlight
+                    // Row 1 is cheaper - Green highlight and checkmark
                     row1.classList.add('highlight-green');
+                    item1Label.innerHTML = '<b style="font-size: 1.5em; color: #4CAF50;">✓</b> Item 1';
                 } else {
-                    // Row 2 is cheaper - Green highlight
+                    // Row 2 is cheaper - Green highlight and checkmark
                     row2.classList.add('highlight-green');
+                    item2Label.innerHTML = '<b style="font-size: 1.5em; color: #4CAF50;">✓</b> Item 2';
                 }
             }
         }
