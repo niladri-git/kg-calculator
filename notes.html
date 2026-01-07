@@ -35,21 +35,104 @@
 </head>
 <body>
     <h1>My Notes</h1>
-    <button id="read-aloud-btn">Read Aloud</button>
-    <button id="stop-read-aloud-btn">Stop Reading</button>
+    <div class="controls">
+        <button id="read-aloud-btn">Read All Notes</button>
+        <button id="stop-read-aloud-btn">Stop Reading</button>
+        <label for="voice-select">Voice:</label>
+        <select id="voice-select"></select>
+    </div>
 
     <div id="notes-container"></div>
 
     <script>
+        const notesContainer = document.getElementById('notes-container');
+        const readAloudBtn = document.getElementById('read-aloud-btn');
+        const stopReadingBtn = document.getElementById('stop-read-aloud-btn');
+        const voiceSelect = document.getElementById('voice-select');
+        let currentUtterance = null;
+        let voices = [];
+
+        function populateVoiceList() {
+            voices = speechSynthesis.getVoices().sort((a, b) => a.name.localeCompare(b.name));
+            voiceSelect.innerHTML = '';
+            voices.forEach((voice, index) => {
+                const desiredVoiceNames = [
+                    "Microsoft Christopher Online (Natural) - English (United States)",
+                    "Microsoft Clara Online (Natural) - English (Canada)"
+                ];
+                if (desiredVoiceNames.includes(voice.name)) {
+                    const option = document.createElement('option');
+                    option.textContent = `${voice.name} (${voice.lang})`;
+                    if (voice.default) {
+                        option.textContent += ' -- DEFAULT';
+                    }
+                    option.setAttribute('data-lang', voice.lang);
+                    option.setAttribute('data-name', voice.name);
+                    option.value = index;
+                    voiceSelect.appendChild(option);
+                }
+            });
+            // Set Microsoft Christopher Online (Natural) - English (United States) as default
+            const christopherVoice = voices.find(voice => voice.name === "Microsoft Christopher Online (Natural)" && voice.lang === "en-US");
+            if (christopherVoice) {
+                const christopherIndex = voices.findIndex(voice => voice.name === "Microsoft Christopher Online (Natural)" && voice.lang === "en-US");
+                if (christopherIndex !== -1) {
+                    voiceSelect.value = christopherIndex;
+                }
+            } else if (voices.length > 0) {
+                // Fallback to the first available voice if Christopher is not found
+                voiceSelect.value = voices[0].value;
+            }
+        }
+
+        // Populate voices initially and when they change
+        populateVoiceList();
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = populateVoiceList;
+        }
+
+        function speakText(textToSpeak) {
+            if (speechSynthesis.speaking) {
+                speechSynthesis.cancel();
+            }
+
+            currentUtterance = new SpeechSynthesisUtterance(textToSpeak);
+            
+            const selectedVoiceIndex = voiceSelect.value;
+            if (selectedVoiceIndex !== null && voices[selectedVoiceIndex]) {
+                currentUtterance.voice = voices[selectedVoiceIndex];
+            } else {
+                // Fallback to default if no voice is selected or found
+                currentUtterance.voice = speechSynthesis.getVoices().find(v => v.default) || voices[0];
+            }
+
+            currentUtterance.lang = currentUtterance.voice.lang; // Set lang based on selected voice
+            currentUtterance.rate = 1; // You can adjust speed
+            currentUtterance.pitch = 1; // You can adjust pitch
+
+            currentUtterance.onend = () => {
+                currentUtterance = null;
+            };
+
+            currentUtterance.onerror = (event) => {
+                console.error('SpeechSynthesisUtterance.onerror', event);
+            };
+
+            speechSynthesis.speak(currentUtterance);
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             fetch('notes.txt')
-                .then(response => response.text())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
                 .then(data => {
-                    const notesContainer = document.getElementById('notes-container');
-                    const paragraphs = data.replace(/\r\n/g, '\n').split(/\n\s*\n/);
-
+                    const paragraphs = data.split(/\r?\n\s*\r?\n/); // Split by one or more blank lines
                     paragraphs.forEach(paragraphText => {
-                        if (paragraphText.trim() !== '') {
+                        if (paragraphText.trim()) { // Only add non-empty paragraphs
                             const p = document.createElement('p');
                             p.classList.add('note-paragraph');
                             p.textContent = paragraphText.trim();
@@ -57,9 +140,7 @@
 
                             p.addEventListener('click', function() {
                                 if ('speechSynthesis' in window) {
-                                    speechSynthesis.cancel(); // Stop any ongoing speech
-                                    const utterance = new SpeechSynthesisUtterance(p.textContent);
-                                    speechSynthesis.speak(utterance);
+                                    speakText(p.textContent);
                                 } else {
                                     alert('Sorry, your browser does not support the Web Speech API.');
                                 }
@@ -67,29 +148,23 @@
                         }
                     });
                 })
-                .catch(error => console.error('Error fetching notes:', error));
+                .catch(error => {
+                    console.error('Error loading notes.txt:', error);
+                    notesContainer.innerHTML = `<p style="color: red;">Failed to load notes: ${error.message}</p>`;
+                });
         });
 
-        document.getElementById('read-aloud-btn').addEventListener('click', function() {
-            const allParagraphs = document.querySelectorAll('.note-paragraph');
-            let fullTextToRead = '';
-            allParagraphs.forEach(p => {
-                fullTextToRead += p.textContent + ' ';
-            });
-
-            if ('speechSynthesis' in window) {
-                speechSynthesis.cancel(); // Stop any ongoing speech
-                const utterance = new SpeechSynthesisUtterance(fullTextToRead.trim());
-                speechSynthesis.speak(utterance);
-            } else {
-                alert('Sorry, your browser does not support the Web Speech API.');
-            }
+        readAloudBtn.addEventListener('click', () => {
+            const allParagraphs = Array.from(notesContainer.querySelectorAll('.note-paragraph'));
+            const fullText = allParagraphs.map(p => p.textContent).join('\n\n');
+            speakText(fullText);
         });
 
-        document.getElementById('stop-read-aloud-btn').addEventListener('click', function() {
-            if ('speechSynthesis' in window) {
+        stopReadingBtn.addEventListener('click', () => {
+            if (speechSynthesis.speaking) {
                 speechSynthesis.cancel();
             }
+            currentUtterance = null;
         });
     </script>
 </body>
