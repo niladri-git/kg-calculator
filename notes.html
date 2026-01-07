@@ -22,6 +22,15 @@
             border-radius: 8px;
             overflow-x: auto;
         }
+        .note-paragraph {
+            cursor: pointer;
+            margin-bottom: 10px; /* Add some spacing between paragraphs */
+            padding: 5px;
+            border-radius: 4px;
+        }
+        .note-paragraph:hover {
+            background-color: #e0e0e0;
+        }
     </style>
 </head>
 <body>
@@ -29,22 +38,48 @@
     <button id="read-aloud-btn">Read Aloud</button>
     <button id="stop-read-aloud-btn">Stop Reading</button>
 
-    <pre id="notes-content"></pre>
+    <div id="notes-container"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             fetch('notes.txt')
                 .then(response => response.text())
                 .then(data => {
-                    document.getElementById('notes-content').textContent = data;
+                    const notesContainer = document.getElementById('notes-container');
+                    const paragraphs = data.replace(/\r\n/g, '\n').split(/\n\s*\n/);
+
+                    paragraphs.forEach(paragraphText => {
+                        if (paragraphText.trim() !== '') {
+                            const p = document.createElement('p');
+                            p.classList.add('note-paragraph');
+                            p.textContent = paragraphText.trim();
+                            notesContainer.appendChild(p);
+
+                            p.addEventListener('click', function() {
+                                if ('speechSynthesis' in window) {
+                                    speechSynthesis.cancel(); // Stop any ongoing speech
+                                    const utterance = new SpeechSynthesisUtterance(p.textContent);
+                                    speechSynthesis.speak(utterance);
+                                } else {
+                                    alert('Sorry, your browser does not support the Web Speech API.');
+                                }
+                            });
+                        }
+                    });
                 })
                 .catch(error => console.error('Error fetching notes:', error));
         });
 
         document.getElementById('read-aloud-btn').addEventListener('click', function() {
-            const textToRead = document.getElementById('notes-content').textContent;
+            const allParagraphs = document.querySelectorAll('.note-paragraph');
+            let fullTextToRead = '';
+            allParagraphs.forEach(p => {
+                fullTextToRead += p.textContent + ' ';
+            });
+
             if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(textToRead);
+                speechSynthesis.cancel(); // Stop any ongoing speech
+                const utterance = new SpeechSynthesisUtterance(fullTextToRead.trim());
                 speechSynthesis.speak(utterance);
             } else {
                 alert('Sorry, your browser does not support the Web Speech API.');

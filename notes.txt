@@ -11,3 +11,11 @@ Another paragraph of notes.
 All deployments
 Latest deployments from pinned environments
 
+---
+
+The Indian Space Research Organisation (Isro) is set to launch the PSLV-C62 mission on January 12, 2026 from Sriharikota. This mission, blasting off at 10:17 am IST, will carry a primary Earth observation satellite alongside 18 intriguing co-passengers from around the world.
+
+From defence tech to artistic experiments in orbit, these payloads promise to push boundaries in science and innovation. Let us dive into the stars of the show.
+
+---
+
