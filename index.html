@@ -38,11 +38,11 @@
             fetch('quotes.txt')
                 .then(response => response.text())
                 .then(data => {
-                    const quotes = data.split('\n').filter(quote => quote.trim() !== '');
+                    const quotes = data.replace(/\r\n/g, '\n').split('\n').filter(quote => quote.trim() !== '');
                     const quotesContainer = document.getElementById('quotes-container');
 
                     quotes.forEach(quoteLine => {
-                        const parts = quoteLine.split(' - ');
+                        const parts = quoteLine.split(/ - | – /);
                         if (parts.length >= 2) {
                             const quoteText = parts[0].trim();
                             const author = parts.slice(1).join(' - ').trim();
