@@ -31,29 +31,42 @@
 <body>
     <h1>Famous Quotes from Great People</h1>
 
-    <div class="quote-container">
-        <p class="quote">"The only way to do great work is to love what you do."</p>
-        <p class="author">- Steve Jobs</p>
-    </div>
+    <div id="quotes-container"></div>
 
-    <div class="quote-container">
-        <p class="quote">"Strive not to be a success, but rather to be of value."</p>
-        <p class="author">- Albert Einstein</p>
-    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('quotes.txt')
+                .then(response => response.text())
+                .then(data => {
+                    const quotes = data.split('\n').filter(quote => quote.trim() !== '');
+                    const quotesContainer = document.getElementById('quotes-container');
 
-    <div class="quote-container">
-        <p class="quote">"The future belongs to those who believe in the beauty of their dreams."</p>
-        <p class="author">- Eleanor Roosevelt</p>
-    </div>
+                    quotes.forEach(quoteLine => {
+                        const parts = quoteLine.split(' - ');
+                        if (parts.length >= 2) {
+                            const quoteText = parts[0].trim();
+                            const author = parts.slice(1).join(' - ').trim();
 
-    <div class="quote-container">
-        <p class="quote">"The mind is everything. What you think you become."</p>
-        <p class="author">- Buddha</p>
-    </div>
+                            const quoteContainer = document.createElement('div');
+                            quoteContainer.classList.add('quote-container');
 
-    <div class="quote-container">
-        <p class="quote">"It is our choices, Harry, that show what we truly are, far more than our abilities."</p>
-        <p class="author">- J.K. Rowling (Albus Dumbledore)</p>
-    </div>
+                            const pQuote = document.createElement('p');
+                            pQuote.classList.add('quote');
+                            pQuote.textContent = `"${quoteText}"`;
+
+                            const pAuthor = document.createElement('p');
+                            pAuthor.classList.add('author');
+                            pAuthor.textContent = `- ${author}`;
+
+                            quoteContainer.appendChild(pQuote);
+                            quoteContainer.appendChild(pAuthor);
+                            quotesContainer.appendChild(quoteContainer);
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching quotes:', error));
+        });
+    </script>
 </body>
 </html>
+
