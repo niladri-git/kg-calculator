@@ -26,6 +26,8 @@
 </head>
 <body>
     <h1>My Notes</h1>
+    <button id="read-aloud-btn">Read Aloud</button>
+    <button id="stop-read-aloud-btn">Stop Reading</button>
 
     <pre id="notes-content"></pre>
 
@@ -37,6 +39,22 @@
                     document.getElementById('notes-content').textContent = data;
                 })
                 .catch(error => console.error('Error fetching notes:', error));
+        });
+
+        document.getElementById('read-aloud-btn').addEventListener('click', function() {
+            const textToRead = document.getElementById('notes-content').textContent;
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(textToRead);
+                speechSynthesis.speak(utterance);
+            } else {
+                alert('Sorry, your browser does not support the Web Speech API.');
+            }
+        });
+
+        document.getElementById('stop-read-aloud-btn').addEventListener('click', function() {
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+            }
         });
     </script>
 </body>
