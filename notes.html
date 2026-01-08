@@ -55,12 +55,17 @@
         function populateVoiceList() {
             voices = speechSynthesis.getVoices().sort((a, b) => a.name.localeCompare(b.name));
             voiceSelect.innerHTML = '';
+            
+            // Mobile compatibility: Include all English voices, not just the hardcoded ones
+            // This ensures functionality on Android/iOS which lack the specific Microsoft voices
             voices.forEach((voice, index) => {
                 const desiredVoiceNames = [
                     "Microsoft Christopher Online (Natural) - English (United States)",
                     "Microsoft Clara Online (Natural) - English (Canada)"
                 ];
-                if (desiredVoiceNames.includes(voice.name)) {
+                
+                // Show if it's a desired voice OR if it's an English voice
+                if (desiredVoiceNames.includes(voice.name) || voice.lang.startsWith('en')) {
                     const option = document.createElement('option');
                     option.textContent = `${voice.name} (${voice.lang})`;
                     if (voice.default) {
@@ -72,16 +77,18 @@
                     voiceSelect.appendChild(option);
                 }
             });
-            // Set Microsoft Christopher Online (Natural) - English (United States) as default
-            const christopherVoice = voices.find(voice => voice.name === "Microsoft Christopher Online (Natural)" && voice.lang === "en-US");
-            if (christopherVoice) {
-                const christopherIndex = voices.findIndex(voice => voice.name === "Microsoft Christopher Online (Natural)" && voice.lang === "en-US");
-                if (christopherIndex !== -1) {
-                    voiceSelect.value = christopherIndex;
-                }
-            } else if (voices.length > 0) {
-                // Fallback to the first available voice if Christopher is not found
-                voiceSelect.value = voices[0].value;
+
+            // Set Microsoft Christopher Online (Natural) - English (United States) as default preference
+            // Use 'includes' for safer matching as names can vary slightly
+            const christopherIndex = voices.findIndex(voice => 
+                voice.name.includes("Microsoft Christopher Online (Natural)") && voice.lang === "en-US"
+            );
+
+            if (christopherIndex !== -1 && Array.from(voiceSelect.options).some(opt => opt.value == christopherIndex)) {
+                voiceSelect.value = christopherIndex;
+            } else if (voiceSelect.options.length > 0) {
+                // Fallback to the first available option in the dropdown
+                voiceSelect.selectedIndex = 0;
             }
         }
 
