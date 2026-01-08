@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text to Speech Reader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+            background-color: #f4f4f4;
+            color: #333;
+            line-height: 1.6;
+            font-size: 1.1em;
+        }
+        .controls {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: inherit;
+            resize: vertical;
+            box-sizing: border-box; /* Ensures padding doesn't affect width */
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button#stop-read-aloud-btn {
+            background-color: #dc3545;
+        }
+        button#stop-read-aloud-btn:hover {
+            background-color: #bd2130;
+        }
+        select {
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 1em;
+            max-width: 300px;
+        }
+        label {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Text Reader</h1>
+    <div class="controls">
+        <button id="read-aloud-btn">Read Text</button>
+        <button id="stop-read-aloud-btn">Stop</button>
+        <label for="voice-select">Voice:</label>
+        <select id="voice-select"></select>
+    </div>
+
+    <textarea id="text-input" placeholder="Enter text here to read aloud..."></textarea>
+
+    <script>
+        const textInput = document.getElementById('text-input');
+        const readAloudBtn = document.getElementById('read-aloud-btn');
+        const stopReadingBtn = document.getElementById('stop-read-aloud-btn');
+        const voiceSelect = document.getElementById('voice-select');
+        let currentUtterance = null;
+        let voices = [];
+
+        function populateVoiceList() {
+            voices = speechSynthesis.getVoices().sort((a, b) => a.name.localeCompare(b.name));
+            voiceSelect.innerHTML = '';
+            
+            // Mobile compatibility: Include all English voices
+            voices.forEach((voice, index) => {
+                const desiredVoiceNames = [
+                    "Microsoft Christopher Online (Natural) - English (United States)",
+                    "Microsoft Clara Online (Natural) - English (Canada)"
+                ];
+                
+                // Show if it's a desired voice OR if it's an English voice
+                if (desiredVoiceNames.includes(voice.name) || voice.lang.startsWith('en')) {
+                    const option = document.createElement('option');
+                    option.textContent = `${voice.name} (${voice.lang})`;
+                    if (voice.default) {
+                        option.textContent += ' -- DEFAULT';
+                    }
+                    option.setAttribute('data-lang', voice.lang);
+                    option.setAttribute('data-name', voice.name);
+                    option.value = index;
+                    voiceSelect.appendChild(option);
+                }
+            });
+
+            // Set Microsoft Christopher Online (Natural) as default preference if available
+            const christopherIndex = voices.findIndex(voice => 
+                voice.name.includes("Microsoft Christopher Online (Natural)") && voice.lang === "en-US"
+            );
+
+            if (christopherIndex !== -1 && Array.from(voiceSelect.options).some(opt => opt.value == christopherIndex)) {
+                voiceSelect.value = christopherIndex;
+            } else if (voiceSelect.options.length > 0) {
+                // Fallback to the first available option in the dropdown
+                voiceSelect.selectedIndex = 0;
+            }
+        }
+
+        // Populate voices initially and when they change
+        populateVoiceList();
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = populateVoiceList;
+        }
+
+        function speakText(textToSpeak) {
+            if (!textToSpeak.trim()) return;
+
+            if (speechSynthesis.speaking) {
+                speechSynthesis.cancel();
+            }
+
+            currentUtterance = new SpeechSynthesisUtterance(textToSpeak);
+            
+            const selectedVoiceIndex = voiceSelect.value;
+            if (selectedVoiceIndex !== null && voices[selectedVoiceIndex]) {
+                currentUtterance.voice = voices[selectedVoiceIndex];
+            } else {
+                // Fallback to default if no voice is selected or found
+                currentUtterance.voice = speechSynthesis.getVoices().find(v => v.default) || voices[0];
+            }
+
+            if (currentUtterance.voice) {
+                currentUtterance.lang = currentUtterance.voice.lang;
+            }
+            
+            currentUtterance.rate = 1;
+            currentUtterance.pitch = 1;
+
+            currentUtterance.onend = () => {
+                currentUtterance = null;
+            };
+
+            currentUtterance.onerror = (event) => {
+                console.error('SpeechSynthesisUtterance.onerror', event);
+            };
+
+            speechSynthesis.speak(currentUtterance);
+        }
+
+        readAloudBtn.addEventListener('click', () => {
+            const text = textInput.value;
+            if (text) {
+                speakText(text);
+            } else {
+                alert("Please enter some text to read.");
+            }
+        });
+
+        stopReadingBtn.addEventListener('click', () => {
+            if (speechSynthesis.speaking) {
+                speechSynthesis.cancel();
+            }
+            currentUtterance = null;
+        });
+    </script>
+</body>
+</html>
