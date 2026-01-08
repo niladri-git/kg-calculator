@@ -19,3 +19,15 @@ From defence tech to artistic experiments in orbit, these payloads promise to pu
 
 ---
 
+What a week ...
+
+StackOverflow is practically dead and Tailwind is also struggling to keep its business going.
+
+Thanks to AI, Tailwind is getting used more than ever before, and StackOverflow helped AI models "learn" about programming.
+
+Now AI may eat them both.
+
+I really, really hope Tailwind can find a way of making money in the future.
+
+---
+
