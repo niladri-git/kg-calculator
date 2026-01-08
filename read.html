@@ -51,6 +51,12 @@
         button#stop-read-aloud-btn:hover {
             background-color: #bd2130;
         }
+        button#reset-btn {
+            background-color: #6c757d;
+        }
+        button#reset-btn:hover {
+            background-color: #545b62;
+        }
         select {
             padding: 10px;
             border-radius: 4px;
@@ -68,6 +74,7 @@
     <div class="controls">
         <button id="read-aloud-btn">Read Text</button>
         <button id="stop-read-aloud-btn">Stop</button>
+        <button id="reset-btn">Reset</button>
         <label for="voice-select">Voice:</label>
         <select id="voice-select"></select>
     </div>
@@ -78,6 +85,7 @@
         const textInput = document.getElementById('text-input');
         const readAloudBtn = document.getElementById('read-aloud-btn');
         const stopReadingBtn = document.getElementById('stop-read-aloud-btn');
+        const resetBtn = document.getElementById('reset-btn');
         const voiceSelect = document.getElementById('voice-select');
         let currentUtterance = null;
         let voices = [];
@@ -175,6 +183,13 @@
                 speechSynthesis.cancel();
             }
             currentUtterance = null;
+        });
+
+        resetBtn.addEventListener('click', () => {
+            textInput.value = '';
+            if (speechSynthesis.speaking) {
+                speechSynthesis.cancel();
+            }
         });
     </script>
 </body>
