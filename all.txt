@@ -1,0 +1,7 @@
+This is the first paragraph of the all.txt file. It serves as an introduction to the content that follows.
+
+This is the second paragraph. When you click here, the reader should start reading this paragraph and continue to the end of the document.
+
+Here is the third paragraph. It contains some more information to demonstrate the continuous reading functionality.
+
+Finally, this is the fourth paragraph. If you clicked the second paragraph, you should hear this one last.
